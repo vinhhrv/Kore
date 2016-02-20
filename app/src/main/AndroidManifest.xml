@@ -37,12 +37,15 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http"/>
+                <!--
                 <data android:scheme="http" android:host="youtube.com"/>
                 <data android:scheme="http" android:host="m.youtube.com"/>
                 <data android:scheme="http" android:host="www.youtube.com"/>
                 <data android:scheme="http" android:host="vimeo.com"/>
                 <data android:scheme="http" android:host="www.vimeo.com"/>
                 <data android:scheme="http" android:host="player.vimeo.com"/>
+                -->
             </intent-filter>
         </activity>
 

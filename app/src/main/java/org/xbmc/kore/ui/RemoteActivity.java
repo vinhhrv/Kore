@@ -28,6 +28,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,6 +66,7 @@ import org.xbmc.kore.utils.UIUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -376,17 +378,33 @@ public class RemoteActivity extends BaseActivity
         }
 
         final String videoId = getVideoId(videoUri);
+        String addonUrl = "";
+        boolean forceClearPlaylist = false;
         if (videoId == null) {
+
+            //Try handle to uri2plugin
+            try
+            {
+                addonUrl = "plugin://plugin.video.fptplay/resolve/"
+                        + URLEncoder.encode(videoUri.toString(),"UTF-8");
+            }
+            catch (java.io.UnsupportedEncodingException ex) {}
+            finally {}
+            forceClearPlaylist = true;
+            /*
             Toast.makeText(RemoteActivity.this,
                     R.string.error_share_video,
                     Toast.LENGTH_SHORT).show();
             return;
+            */
+        } else {
+            addonUrl = "plugin://plugin.video." +
+                    (videoUri.getHost().endsWith("vimeo.com") ? "vimeo" : "youtube") +
+                    "/play/?video_id=" + videoId;
         }
 
-        final String kodiAddonUrl = "plugin://plugin.video." +
-                (videoUri.getHost().endsWith("vimeo.com") ? "vimeo" : "youtube") +
-                "/play/?video_id=" + videoId;
-
+        final String kodiAddonUrl = addonUrl;
+        final boolean kodiClearPlaylist = forceClearPlaylist;
         // Check if any video player is active and clear the playlist before queuing if so
         final HostConnection connection = hostManager.getConnection();
         final Handler callbackHandler = new Handler();
@@ -401,12 +419,15 @@ public class RemoteActivity extends BaseActivity
                         videoIsPlaying = true;
                 }
 
-                if (!videoIsPlaying) {
+                if (!videoIsPlaying || kodiClearPlaylist) {
                     // Clear the playlist
                     clearPlaylistAndQueueFile(kodiAddonUrl, connection, callbackHandler);
+
                 } else {
                     queueFile(kodiAddonUrl, false, connection, callbackHandler);
                 }
+
+                Log.w("Kore", kodiAddonUrl);
             }
 
             @Override
